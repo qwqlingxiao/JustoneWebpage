@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#*qixue.so hook*#</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        min-height: 100vh;
+        background-image: url("1.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-family: Arial, "Microsoft YaHei", sans-serif;
+        color: white;
+        text-align: center;
+        overflow-x: hidden; 
+        position: relative;
+    }
+
+    #sakura-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+    }
+
+    .top-right-icon {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        cursor: pointer;
+        z-index: 100;
+        transition: transform 0.3s ease, filter 0.3s ease;
+    }
+
+    .top-right-icon:hover {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8));
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 0;
+        right: -300px;
+        width: 280px;
+        height: 100vh;
+        background-color: rgba(255, 255, 255, 0.08); 
+        border-left: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        box-shadow: -8px 0 32px 0 rgba(0, 0, 0, 0.3);
+        z-index: 99;
+        transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 90px 30px 30px 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .sidebar.active {
+        right: 0;
+    }
+
+    .sidebar-link {
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 24px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+        padding: 10px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        background-color: rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
+        width: 100%;
+        text-align: center;
+    }
+
+    .sidebar-link:hover {
+        color: #00ffff;
+        background-color: rgba(255, 255, 255, 0.15);
+        border-color: rgba(0, 255, 255, 0.4);
+        text-shadow: 0 0 12px #00ffff;
+        transform: translateY(-2px);
+    }
+
+    .content-wrapper {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+    }
+
+    .box-style {
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 16px;
+        padding: 12px 24px;
+        background-color: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px) saturate(180%);
+        -webkit-backdrop-filter: blur(12px) saturate(180%);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        margin: 12px;
+    }
+
+    .title {
+        font-size: 50px;
+        font-weight: bold;
+        animation: colorChange 3s infinite linear, breathe 2.5s infinite ease-in-out alternate;
+        margin-bottom: 20px;
+    }
+
+    @keyframes breathe {
+        0% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.3), 0 0 20px currentColor; transform: scale(1); }
+        100% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px currentColor; transform: scale(1.02); }
+    }
+
+    @keyframes colorChange {
+        0% { color: #ff4d4d; }
+        25% { color: #ffd633; }
+        50% { color: #33ff99; }
+        75% { color: #3399ff; }
+        100% { color: #ff4dff; }
+    }
+
+    .desc { font-size: 20px; margin-bottom: 25px; }
+
+    video {
+        width: 80%;
+        max-width: 800px;
+        border-radius: 15px;
+        box-shadow: 0 0 25px rgba(0,0,0,0.4);
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        width: 100%;
+        min-width: 280px;
+        max-width: 400px;
+        padding: 20px 40px;
+    }
+
+    .option-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .option-link {
+        color: #00ffff;
+        text-decoration: none;
+        font-size: 22px;
+        font-weight: bold;
+        text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);
+        transition: all 0.3s ease;
+    }
+
+    .option-link:hover {
+        color: #ffffff;
+        text-shadow: 0 0 15px #ffffff, 0 0 25px #00ffff;
+    }
+
+    .option-comment {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 14px;
+        letter-spacing: 1px;
+    }
+
+    .jump { font-size: 18px; }
+
+    .jump a {
+        color: white;
+        text-decoration: none;
+        text-shadow: 0 0 8px black;
+        margin: 0 15px;
+        transition: all 0.3s ease;
+    }
+
+    .jump a:hover { color: #00ffff; text-shadow: 0 0 12px #00ffff; }
+</style>
+</head>
+<body>
+
+<canvas id="sakura-canvas"></canvas>
+<img src="Aa.png" alt="Menu" class="top-right-icon" id="sidebar-toggle">
+
+<div class="sidebar" id="sidebar">
+    <a href="https://example.com/settings" target="_blank" class="sidebar-link">Download Tool</a>
+</div>
+
+<div class="content-wrapper">
+    <div class="title box-style">qixue.so hook*</div>
+    <div class="desc box-style">Welcome to my webpage.</div>
+
+    <video autoplay loop muted controls>
+        <source src="video.mp4" type="video/mp4">
+        您的浏览器不支持视频播放。
+    </video>
+
+    <div class="options-container box-style">
+        <div class="option-item">
+            <a href="https://192.168.0.124:8080/Pages2.html" target="_blank" class="option-link">Understand our Tools</a>
+            <span class="option-comment">Click to jump to the next page.</span>
+        </div>
+        <div class="option-item">
+            <a href="https://192.168.0.124:8080/Tool.zip" target="_blank" class="option-link">Download our Tools</a>
+            <span class="option-comment">Click to jump to the next page.</span>
+        </div>
+        <div class="option-item">
+            <a href="https://example.com/3" target="_blank" class="option-link">Tool tutorial</a>
+            <span class="option-comment">Click to jump to the next page.</span>
+        </div>
+        <div class="option-item">
+            <a href="https://example.com/4" target="_blank" class="option-link">ours official</a>
+            <span class="option-comment">Click to jump to the next page.</span>
+        </div>
+        <div class="option-item">
+            <a href="https://example.com/5" target="_blank" class="option-link">Webpage settings</a>
+            <span class="option-comment">Click to jump to the next page.</span>
+        </div>
+        <div class="option-item">
+            <a href="https://example.com/6" target="_blank" class="option-link">About us</a>
+            <span class="option-comment">Click to jump to the next page.</span>
+        </div>
+        <div class="option-item">
+            <a href="intent://#Intent;package=com.nexon.bluearchive;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;launchFlags=0x10000000;end" class="option-link">Start Tool</a>
+            <span class="option-comment">Launch Blue Archive.</span>
+        </div>
+    </div>
+
+    <div class="jump box-style">
+        <a href="https://x.com/OvO1410394" target="_blank">Owner Twitter</a>
+        <a href="https://t.me/qixueOvO" target="_blank">Owner Telegram</a>
+    </div>
+    <div class="footer-note">Thank you for your use and support</div>
+</div>
+
+<script>
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+
+    sidebarToggle.addEventListener('click', (e) => {
+        sidebar.classList.toggle('active');
+        e.stopPropagation();
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && e.target !== sidebarToggle) {
+            sidebar.classList.remove('active');
+        }
+    });
+
+    const canvas = document.getElementById('sakura-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    let sakuraList = [];
+    let clickParticles = [];
+
+    class Sakura {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height - canvas.height;
+            this.r = Math.random() * 4 + 2;
+            this.d = Math.random() * 30 + 10;
+            this.angle = Math.random() * 360;
+            this.angleSpeed = Math.random() * 0.5 + 0.2;
+            this.speedY = Math.random() * 1.2 + 0.8;
+            this.speedX = Math.random() * 0.5 - 0.25;
+            this.color = 'rgba(255, ' + (Math.floor(Math.random() * 40) + 180) + ', 200, 0.7)';
+        }
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate((this.angle * Math.PI) / 180);
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.r * 1.5, this.r, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+        }
+        update() {
+            this.y += this.speedY;
+            this.x += this.speedX + Math.sin(this.y / this.d) * 0.3;
+            this.angle += this.angleSpeed;
+            if (this.y > canvas.height + 10 || this.x > canvas.width + 10 || this.x < -10) {
+                this.x = Math.random() * canvas.width;
+                this.y = -20;
+            }
+        }
+    }
+
+    for (let i = 0; i < 40; i++) { sakuraList.push(new Sakura()); }
+
+    class ClickParticle {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.r = Math.random() * 5 + 3;
+            this.angle = Math.random() * 360;
+            this.speed = Math.random() * 4 + 2;
+            this.vx = Math.cos((this.angle * Math.PI) / 180) * this.speed;
+            this.vy = Math.sin((this.angle * Math.PI) / 180) * this.speed;
+            this.gravity = 0.08;
+            this.alpha = 1;
+            this.decay = Math.random() * 0.02 + 0.015;
+            this.color = 'rgba(255, ' + (Math.floor(Math.random() * 40) + 170) + ', 195, ';
+        }
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate((this.angle * Math.PI) / 180);
+            ctx.fillStyle = this.color + this.alpha + ')';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.r * 1.4, this.r, 0, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.restore();
+        }
+        update() {
+            this.x += this.vx;
+            this.vy += this.gravity;
+            this.y += this.vy;
+            this.alpha -= this.decay;
+        }
+    }
+
+    function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        sakuraList.forEach(sakura => { sakura.update(); sakura.draw(); });
+        for (let i = clickParticles.length - 1; i >= 0; i--) {
+            const p = clickParticles[i];
+            p.update(); p.draw();
+            if (p.alpha <= 0) clickParticles.splice(i, 1);
+        }
+        requestAnimationFrame(loop);
+    }
+    loop();
+
+    window.addEventListener('click', (e) => {
+        if (sidebar.contains(e.target) || e.target === sidebarToggle) return;
+        for (let i = 0; i < 12; i++) {
+            clickParticles.push(new ClickParticle(e.clientX, e.clientY));
+        }
+    });
+</script>
+</body>
+</html>
+    
