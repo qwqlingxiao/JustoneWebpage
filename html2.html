@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200, initial-scale=1.0">
+<title>#*qixue.so hook*#</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        min-height: 100vh;
+        /* 默认背景，由JS脚本随机覆盖 */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-family: Arial, "Microsoft YaHei", sans-serif; color: white; text-align: center;
+        overflow-x: auto; position: relative;
+    }
+    #sakura-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+    .top-right-icon { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; cursor: pointer; z-index: 100; transition: 0.3s; }
+    .top-right-icon:hover { transform: scale(1.1); filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.8)); }
+    
+    .sidebar {
+        position: fixed; top: 0; right: -300px; width: 280px; height: 100vh;
+        background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+        border-left: 1px solid rgba(255, 255, 255, 0.2); z-index: 99;
+        transition: 0.4s; padding: 90px 30px; display: flex; flex-direction: column; align-items: center;
+    }
+    .sidebar.active { right: 0; }
+    .sidebar-link { color: white; text-decoration: none; font-size: 24px; font-weight: bold; padding: 10px; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; width: 100%; text-align: center; }
+
+    .content-wrapper { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    .box-style { border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 16px; padding: 20px; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); margin: 10px; }
+    
+    .title { font-size: 50px; font-weight: bold; animation: colorChange 3s infinite linear, breathe 2.5s infinite alternate; margin-bottom: 20px; }
+    @keyframes breathe { from { text-shadow: 0 0 10px #fff, 0 0 20px currentColor; } to { text-shadow: 0 0 20px #fff, 0 0 40px currentColor; } }
+    @keyframes colorChange { 0% { color: #ff4d4d; } 25% { color: #ffd633; } 50% { color: #33ff99; } 75% { color: #3399ff; } 100% { color: #ff4dff; } }
+    
+    .text-block { font-size: 20px; margin: 10px 0; }
+    .back-link { font-size: 22px; color: #00ffff; text-decoration: none; font-weight: bold; margin: 10px 0; transition: 0.3s; }
+    .back-link:hover { text-shadow: 0 0 15px #00ffff; }
+    .footer-note { margin-top: 15px; font-size: 15px; color: rgba(255,255,255,0.65); }
+</style>
+</head>
+<body>
+<!-- 背景随机脚本 -->
+<script>
+    const randomBg = Math.floor(Math.random() * 10) + 1;
+    document.body.style.backgroundImage = `url('${randomBg}.jpg')`;
+</script>
+
+<canvas id="sakura-canvas"></canvas>
+<img src="Aa.png" alt="Menu" class="top-right-icon" id="sidebar-toggle">
+<div class="sidebar" id="sidebar"><a href="#" class="sidebar-link">setting</a></div>
+
+<div class="content-wrapper">
+    <div class="title box-style">#*qixue.so hook*#</div>
+    
+    <div class="box-style">
+        <div class="text-block">注意:此工具需 Root 权限，仅超级用户权限设备才可使用此工具（类似于GG修改器），此项目无任何违规，由此应用产生的错误或损失个人承担责任，用户下载,使用,转发等操作默认同意准则</div> 
+        <div class="text-block">请选择进程后再修改或执行脚本。</div>  
+        <a href="https://qwqlingxiao.github.io/JustoneWebpage/" class="back-link">Back</a> 
+        <div class="footer-note">Thank you for your use and support</div> 
+    </div>
+</div>
+
+<script>
+    // 侧边栏与樱花特效逻辑
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+    sidebarToggle.addEventListener('click', (e) => { sidebar.classList.toggle('active'); e.stopPropagation(); });
+    document.addEventListener('click', (e) => { if (!sidebar.contains(e.target) && e.target !== sidebarToggle) sidebar.classList.remove('active'); });
+
+    const canvas = document.getElementById('sakura-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    let petals = [];
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if(Math.random() < 0.1) petals.push({x: Math.random()*canvas.width, y: -10, r: Math.random()*3+2, s: Math.random()*2+1});
+        petals.forEach((p, i) => { p.y += p.s; ctx.fillStyle = 'rgba(255,200,200,0.6)'; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); if(p.y > canvas.height) petals.splice(i, 1); });
+        requestAnimationFrame(animate);
+    }
+    animate();
+</script>
+</body>
+</html>
