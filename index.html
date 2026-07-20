@@ -12,7 +12,7 @@
     }
 
     body {
-        min-height: 1200ph;
+        min-height: 1200vh;
         background-image: url("1.png");
         background-size: cover;
         background-position: center;
@@ -204,6 +204,12 @@
 </style>
 </head>
 <body>
+
+<!-- 动态随机背景图脚本 -->
+<script>
+    const randomBgIndex = Math.floor(Math.random() * 10) + 1;
+    document.body.style.backgroundImage = `url('${randomBgIndex}.jpg')`;
+</script>
 
 <canvas id="sakura-canvas"></canvas>
 <img src="Aa.png" alt="Menu" class="top-right-icon" id="sidebar-toggle">
